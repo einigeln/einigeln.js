@@ -1,0 +1,21 @@
+{
+  "name": "einigeln",
+  "version": "0.0.0",
+  "description": "Dependency Injection container using a interface like Pimple3.",
+  "main": "einigeln.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/h4cc/einigeln.js"
+  },
+  "author": "Julius Beckmann <npm@juliusbeckmann.de> (https://github.com/h4cc)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/h4cc/einigeln.js/issues"
+  },
+  "devDependencies": {
+    "mocha": "~2.1.0"
+  }
+}
