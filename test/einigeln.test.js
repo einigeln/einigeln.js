@@ -174,4 +174,29 @@ describe('Einigeln', function () {
             assert.strictEqual('43', di.get('foo'));
         });
     });
+
+    describe('Tags', function () {
+        it('should start with empty tags', function () {
+            var di = new Einigeln();
+            assert.deepEqual([], di.tagged('aTag'));
+        });
+
+        it('should return given tags', function () {
+            var di = new Einigeln();
+
+            di.tag('foo', 'aTag');
+            di.tag('bar', 'aTag', {some: 'config'});
+
+            assert.deepEqual([{name: 'foo', config: {}}, {name: 'bar', config: {some: 'config'}}], di.tagged('aTag'));
+        });
+
+        it('should not return unique tags', function () {
+            var di = new Einigeln();
+
+            di.tag('foo', 'aTag');
+            di.tag('foo', 'aTag');
+
+            assert.deepEqual([{name: 'foo', config: {}}, {name: 'foo', config: {}}], di.tagged('aTag'));
+        });
+    });
 });

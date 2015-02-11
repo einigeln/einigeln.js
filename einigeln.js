@@ -2,11 +2,8 @@
  * TODO: Write docs.
  */
 
-
-module.exports = function Einigeln(initialDefinitions) {
+module.exports = function Einigeln() {
     "use strict";
-
-    // Hint: The initialDefinitions will be inserted at the end of the class.
 
     /**
      * Map from key => parameter|callback|calculatedValue
@@ -43,6 +40,13 @@ module.exports = function Einigeln(initialDefinitions) {
      * @type {number}
      */
     var functionId = 1;
+
+    /**
+     * Array containing a list of tags with multiple services and configurations.
+     *
+     * @type {{}}
+     */
+    var tagged = {};
 
     /**
      * Throw a error if service key is not defined.
@@ -163,6 +167,34 @@ module.exports = function Einigeln(initialDefinitions) {
     };
 
     /**
+     * Will add a list of tags to a service.
+     *
+     * @param key string
+     * @param tag string
+     * @param config object
+     */
+    this.tag = function (key, tag, config) {
+        config = config || {};
+        if (!(tag in tagged)) {
+            tagged[tag] = [];
+        }
+        tagged[tag].push({name: key, config: config});
+    };
+
+    /**
+     * Will return the names of service names tagged with given tag.
+     *
+     * @param tag
+     * @returns [string]
+     */
+    this.tagged = function (tag) {
+        if (tag in tagged) {
+            return tagged[tag];
+        }
+        return [];
+    };
+
+    /**
      * Will mark the given function as a "factory".
      *
      * @param fn
@@ -261,156 +293,4 @@ module.exports = function Einigeln(initialDefinitions) {
     this.keys = function () {
         return Object.keys(definitions);
     };
-
-    // Insert the given definitions from constructor into this object.
-    initialDefinitions = initialDefinitions || {};
-    for (var key in initialDefinitions) {
-        if (initialDefinitions.hasOwnProperty(key)) {
-            this.set(key, initialDefinitions[key]);
-        }
-    }
 };
-
-
-/*
-
- (function () {
-
- "use strict";
-
- var _self = this;
-
-
- var isFunction = function (obj) {
- return (obj instanceof Function);
- };
-
- //var reservedProperties = ['get', 'set', 'factory', 'raw', 'protect', 'share', 'toString', 'constructor'];
-
-
- this.Container = function (definitions) {
- if (!(this instanceof _self.Container)) {
- return new _self.Container(definitions);
- }
-
- this.values = {};
-
- for (var key in definitions) {
- if (definitions.hasOwnProperty(key)) {
- this.set(key, definitions[key]);
- }
- }
- };
-
-
- this.Container.prototype = {
-
- set: function (key, definition) {
- return this;
- },
-
- get: function (key) {
- return null;
- },
-
- exists: function () {
- return false;
- },
-
- unset: function () {
-
- },
-
- factory: function (fn) {
-
- },
-
- protect: function (fn) {
-
- },
-
- raw: function (key) {
- return null;
- },
-
- extend: function (key, fn) {
- return this;
- },
-
- keys: function () {
- return [];
- }
-
-
-
- get: function (key) {
- if (this._definitions[key] === undefined)return;
- if (_isFunction(this._definitions[key])) {
- return this._definitions[key].call(this, this);
- }
- return this._definitions[key];
- },
-
-
- set: function (key, definition) {
- this._definitions[key] = definition;
- if (reservedProperties.indexOf(key) === -1) {
- Object.defineProperty(this, key, {
- get: function () {
- return this.get(key);
- },
- configurable: true,
- enumerable: true
- });
- }
- return this
- },
-
-
- raw: function (key) {
- return this._definitions[key];
- },
-
-
- share: function (definition) {
- var cached, self = this;
- return function () {
- if (cached === undefined) {
- cached = definition.call(self, self);
- }
- return cached;
- }
- },
-
- protect: function (definition, context) {
- context = context || this;
- return function () {
- return definition.bind(context);
- }
- },
-
- extend: function (key, definition) {
- return definition.bind(this, this.get(key), this);
- },
-
-
- register: function (definitionProvider) {
- return definitionProvider(this);
- }
-
- };
-
- // Whats this?
- if (this.define instanceof Function) {
- var self = this;
- this.define('container', [], function () {
- return self.Container
- });
- }
-
- //CommonJS
- if (module && module.exports) {
- module.exports = this.Container;
- }
- }).apply(this);
- */
