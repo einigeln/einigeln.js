@@ -191,6 +191,37 @@ describe('Einigeln', function () {
             assert.strictEqual(42, di.get('foo'));
         });
 
+        it('should define classes as services without injections', function () {
+            var di = new Einigeln();
+
+            var foo = function Foo() {
+                assert.deepEqual({}, [].slice.call(arguments));
+            };
+
+            di.inject('foo', foo);
+
+            assert(di.get('foo') instanceof foo);
+        });
+
+        it('should define classes as services with given injections', function () {
+            var di = new Einigeln();
+
+            di.set('hello', 'world');
+            di.set('bar', 42);
+
+            var foo = function Foo(hello, answer) {
+                assert.deepEqual(["world", 42], [].slice.call(arguments));
+                this.bar = function () {
+                    return '' + hello + ': ' + answer;
+                };
+            };
+
+            di.inject('foo', foo, ['hello', 'bar']);
+
+            assert(di.get('foo') instanceof foo);
+            assert.strictEqual('world: 42', di.get('foo').bar());
+        });
+
         it('should define services with given injections', function () {
             var di = new Einigeln();
 
@@ -209,6 +240,7 @@ describe('Einigeln', function () {
             assert.strictEqual('world: 42', di.get('bar'));
         });
 
+        /*
         it('should define services with magic injections', function () {
             var di = new Einigeln();
 
@@ -244,6 +276,7 @@ describe('Einigeln', function () {
             assert.strictEqual(42, di.get('foo'));
             assert.strictEqual('world: 42', di.get('baz'));
         });
+         */
     });
 
     describe('Tags', function () {

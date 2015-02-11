@@ -211,6 +211,8 @@ module.exports = function Einigeln(controlCallback) {
             throw new Error('Only functions can have injections.');
         }
 
+        /*
+        // TODO: This does not work with named Function/Classes. FIXME
         if (undefined === injects) {
             // Calculate injections from function signature.
             var fnString = definition.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s))/mg, '');
@@ -219,6 +221,7 @@ module.exports = function Einigeln(controlCallback) {
                 injects = fnString.match(/^function\s*[^\(]*\(\s*([^\)]*)\)/m)[1].split(/,/);
             }
         }
+        */
         injects = injects || [];
 
         return this.set(key, function () {
@@ -235,6 +238,12 @@ module.exports = function Einigeln(controlCallback) {
             });
 
             if (isFunction(definition)) {
+                if('' !== definition.name) {
+                    // A function with a name is considered a class.
+                    var args = [null].concat(injectedServices);
+                    // Info: The first argument will be removed by `apply()`, don't know why so simply putting in NULL.
+                    return new (Function.prototype.bind.apply(definition, args));
+                }
                 return definition.apply(definition, injectedServices);
             }
             return definition;
