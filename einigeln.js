@@ -2,8 +2,71 @@
  * TODO: Write docs.
  */
 
-module.exports = function Einigeln() {
-    "use strict";
+var EventEmitter = require('events').EventEmitter;
+
+/**
+ * Einigeln is a dependency injection container with some more features controlling instantiation.
+ *
+ * A Compiler is integrated offering events for pre and post allowing instantiations in the container.
+ *
+ * @param controlCallback
+ * @constructor
+ */
+module.exports = function Einigeln(controlCallback) {
+    'use strict';
+
+    // Typecheck controlCallback
+    if (undefined !== controlCallback && !(controlCallback instanceof Function)) {
+        throw new Error('Control Callback needs to be a function.');
+    }
+    controlCallback = controlCallback || function () {
+        // Intended NOOP.
+    };
+
+    var compiler = null;
+    var events = new EventEmitter();
+    var config = {
+        /**
+         * Flag if the container will allow instantiating service callbacks.
+         * By default it is true, and can be switched to false if needed or used with `emitCompile()`.
+         */
+        instantiate: true,
+        /**
+         * Flag if changing definitions in the container is allowed.
+         */
+        locked: false,
+        /**
+         * Interface for the compiler.
+         */
+        compiler: {
+            /**
+             * Register a callback for after container has started instantiating.
+             * @param callback
+             */
+            onCompilePost: function (callback) {
+                events.on('compiler.post', callback);
+            },
+            /**
+             * Register a callback for before container will start instantiating.
+             * @param callback
+             */
+            onCompilePre: function (callback) {
+                events.on('compiler.pre', callback);
+            },
+            /**
+             * Trigger the event "compile.pre".
+             * Will set `config.instantiate` to true.
+             * Then trigger the event "compile.post".
+             */
+            emitCompile: function () {
+                events.emit('compiler.pre', this);
+                config.instantiate = true;
+                events.emit('compiler.post', this);
+            }
+        }
+    };
+    // Enable external callback to change internal values.
+    controlCallback(config);
 
     /**
      * Map from key => parameter|callback|calculatedValue
@@ -68,8 +131,7 @@ module.exports = function Einigeln() {
     };
 
     /**
-     * Will tag a object with a hidden attribute if not yet done
-     * and return that tag.
+     * Will tag a object with a hidden attribute if not yet done and return that tag.
      *
      * @param obj
      * @returns String
@@ -98,10 +160,22 @@ module.exports = function Einigeln() {
         return null;
     };
 
+    /**
+     * Define a parameter|service for given key. Existing definitions will be overwritten.
+     * If a service is a callback and it has been executed, it can not be overwritten because it is frozen.
+     *
+     * @param key
+     * @param definition
+     * @returns {exports}
+     */
     this.set = function (key, definition) {
         // Ensure the given key is a string
         if(typeof key !== 'string') {
             throw new Error('Key is not a string. Only strings are supported as keys.');
+        }
+
+        if(true === config.locked) {
+            throw new Error('Container is locked, no changes possible.');
         }
 
         if(key in frozen) {
@@ -112,18 +186,31 @@ module.exports = function Einigeln() {
         return this;
     };
 
+    /**
+     * Will return the parameter|callback or factory result|protected service.
+     * When given key is not defined a error will be thrown.
+     *
+     * @param key
+     * @returns {*}
+     */
     this.get = function (key) {
         checkServiceisDefined(key);
 
         var definition = definitions[key];
 
-        if(getTag(definition) in protect) {
-            // This callback should never be executed and should be returned as is.
+        if (!isFunction(definition)) {
+            // Value is just a parameter.
             return definition;
         }
 
-        if (!isFunction(definition)) {
-            // Value is just a parameter.
+        // Anything below here will result in executing a factory or service callback.
+
+        if(false === config.instantiate) {
+            throw new Error('Container is not configured to instantiate services.');
+        }
+
+        if(getTag(definition) in protect) {
+            // This callback should never be executed and should be returned as is.
             return definition;
         }
 
@@ -161,8 +248,43 @@ module.exports = function Einigeln() {
         return (key in definitions);
     };
 
-    this.unset = function () {
-        // TODO
+
+    /**
+     * Will remove the definition of a service.
+     *
+     * Can not be done, if the container is locked or the service is frozen.
+     *
+     * @param key
+     * @returns {exports}
+     */
+    this.unset = function (key) {
+
+        if(true === config.locked) {
+            throw new Error('Container is locked, no changes possible.');
+        }
+
+        if(key in definitions) {
+            // It is a defined service.
+
+            if(key in frozen) {
+                throw new Error('Cannot unset frozen service: '+key);
+            }
+
+            var tag = getTag(definitions[key]);
+
+            if(tag in factories) {
+                delete factories[tag];
+            }
+
+            if(tag in protect) {
+                delete protect[tag];
+            }
+
+            delete definitions[key];
+            delete callbacks[key];
+            delete frozen[key];
+        }
+
         return this;
     };
 
@@ -244,6 +366,10 @@ module.exports = function Einigeln() {
             return callbacks[key];
         }
 
+        if(false === config.instantiate) {
+            throw new Error('Container is not configured to instantiate services.');
+        }
+
         // We don't know what kind of service it is, so simply return its definition.
         return definitions[key];
     };
@@ -251,7 +377,7 @@ module.exports = function Einigeln() {
     /**
      * Extend a existing service with the given function.
      *
-     * The given function will be called with: fn(resultOfExistingService, container)
+     * The given function will be called with: fn(oldDefinition, container)
      *
      * @param key
      * @param fn
@@ -272,7 +398,7 @@ module.exports = function Einigeln() {
 
         // Wrap old definition in new callback.
         var extended = function(container) {
-            return fn(definition(container), container);
+            return fn(definition, container);
         };
         
         // If the old function was tagged as a factory, it has to be replaced by new extension.
@@ -293,4 +419,12 @@ module.exports = function Einigeln() {
     this.keys = function () {
         return Object.keys(definitions);
     };
+
+    /**
+     * Will return the Compiler offering registering Callbacks for pre and post instantiation.
+     * @returns {*}
+     */
+    this.getCompiler = function() {
+        return config.compiler;
+    }
 };

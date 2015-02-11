@@ -152,8 +152,8 @@ describe('Einigeln', function () {
                 return 'bar';
             });
 
-            di.extend('foo', function (innerResult, container) {
-                return '' + innerResult + ' ' + container.get('bar');
+            di.extend('foo', function (oldDefinition, container) {
+                return '' + oldDefinition() + ' ' + container.get('bar');
             });
 
             assert.strictEqual('bar 42', di.get('foo'));
@@ -169,8 +169,8 @@ describe('Einigeln', function () {
                 return counter++;
             }));
 
-            di.extend('foo', function (innerResult) {
-                return '' + innerResult;
+            di.extend('foo', function (oldDefinition) {
+                return '' + oldDefinition();
             });
 
             // Expecting differnt results because its a factory.
@@ -201,6 +201,197 @@ describe('Einigeln', function () {
             di.tag('foo', 'aTag');
 
             assert.deepEqual([{name: 'foo', config: {}}, {name: 'foo', config: {}}], di.tagged('aTag'));
+        });
+    });
+
+    describe('Compiler', function () {
+        it('should unset a parameter', function () {
+            var di = new Einigeln();
+
+            di.set('bar', 42);
+
+            assert(di.exists('bar'));
+            assert.strictEqual(42, di.get('bar'));
+
+            di.unset('bar');
+
+            assert(!di.exists('bar'));
+            assert.throws(
+                function () {
+                    di.raw('bar');
+                },
+                /not defined/
+            );
+        });
+
+        it('should unset a service', function () {
+            var di = new Einigeln();
+
+            di.set('foo', function() {
+                return 42;
+            });
+
+            assert(di.exists('foo'));
+            di.unset('foo');
+            assert(!di.exists('foo'));
+            assert.throws(
+                function () {
+                    di.raw('foo');
+                },
+                /not defined/
+            );
+        });
+
+        it('should not unset a frozen service', function () {
+            var di = new Einigeln();
+
+            di.set('foo', function() {
+                return 42;
+            });
+
+            assert(di.exists('foo'));
+            assert.strictEqual(42, di.get('foo'));
+
+            assert.throws(
+                function () {
+                    di.unset('foo');
+                },
+                /frozen/
+            );
+
+            assert(di.exists('foo'));
+        });
+    });
+
+    describe('Compiler', function () {
+        it('should accept a controlCallback with valid interface', function () {
+            var control = function (config) {
+                assert(true === config.instantiate);
+                assert(false === config.locked);
+                assert(config.compiler.onCompilePost instanceof Function);
+                assert(config.compiler.onCompilePre instanceof Function);
+                assert(config.compiler.emitCompile instanceof Function);
+            };
+
+            var di = new Einigeln(control);
+
+            var compiler = di.getCompiler();
+            assert(compiler.onCompilePost instanceof Function);
+            assert(compiler.onCompilePre instanceof Function);
+            assert(compiler.emitCompile instanceof Function);
+        });
+
+        it('should disable instantiation on request', function () {
+            var config = null;
+            var di = new Einigeln(function (internalConfig) {
+                config = internalConfig;
+            });
+
+            config.instantiate = false;
+            di.set('foo', function () {
+                return 42;
+            });
+            di.set('param', 1337);
+
+            // Creating services will fail
+            assert.throws(
+                function () {
+                    di.get('foo');
+                },
+                /instantiate/
+            );
+
+            // or fetching their raw function.
+            assert.throws(
+                function () {
+                    di.raw('foo');
+                },
+                /instantiate/
+            );
+
+            // while fetching parameters works.
+            assert.strictEqual(1337, di.get('param'));
+
+            // After enabling instantiation container will comply.
+            config.instantiate = true;
+
+            assert(di.raw('foo') instanceof Function);
+            assert.strictEqual(42, di.get('foo'));
+            assert.strictEqual(1337, di.get('param'));
+        });
+
+        it('should send events', function () {
+            var config = null;
+            var di = new Einigeln(function (internalConfig) {
+                config = internalConfig;
+                config.instantiate = false;
+            });
+
+            var compilePre = false;
+            config.compiler.onCompilePre(function () {
+                compilePre = true;
+            });
+
+            var compilePost = false;
+            config.compiler.onCompilePost(function () {
+                compilePost = true;
+            });
+
+            // Ensure state before compile.
+            assert(false === config.instantiate);
+            assert(false === config.locked);
+            assert(false === compilePre);
+            assert(false === compilePost);
+
+            config.compiler.emitCompile();
+
+            // Assert state after compile.
+            assert(true === config.instantiate);
+            assert(false === config.locked);
+            assert(true === compilePre);
+            assert(true === compilePost);
+        });
+
+        it('should lock definition changes', function () {
+            var config = null;
+            var di = new Einigeln(function (internalConfig) {
+                config = internalConfig;
+            });
+
+            di.set('foo', function () {
+                return 42;
+            });
+            di.set('param', 1337);
+
+            config.locked = true;
+
+            // Overwriting anything fails.
+            assert.throws(
+                function () {
+                    di.set('foo', function () {
+                        return 43;
+                    });
+                },
+                /locked/
+            );
+            assert.throws(
+                function () {
+                    di.set('param', function () {
+                        return 1337;
+                    });
+                },
+                /locked/
+            );
+
+            // Extending too
+            assert.throws(
+                function () {
+                    di.extend('foo', function () {
+                        return 44;
+                    });
+                },
+                /locked/
+            );
         });
     });
 });
