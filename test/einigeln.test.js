@@ -8,7 +8,10 @@ describe('Einigeln', function () {
     describe('Parameter', function () {
 
         it('should return the given values', function () {
-            var di = new Einigeln({bar: 'baz', 'foo': 42});
+            var di = new Einigeln();
+
+            di.set('bar', 'baz');
+            di.set('foo', 42);
 
             assert.equal('baz', di.get('bar'));
             assert.equal(42, di.get('foo'));
@@ -142,7 +145,8 @@ describe('Einigeln', function () {
 
     describe('Extend', function () {
         it('should extend service', function () {
-            var di = new Einigeln({bar: 42});
+            var di = new Einigeln();
+            di.set('bar', 42);
 
             di.set('foo', function () {
                 return 'bar';
