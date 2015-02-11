@@ -460,5 +460,31 @@ describe('Einigeln', function () {
                 /locked/
             );
         });
+
+        it('should inject container', function () {
+            var config = null;
+            var di = new Einigeln(function (internalConfig) {
+                config = internalConfig;
+            });
+
+            var counter = 0;
+
+            config.compiler.onCompilePre(function(container) {
+                assert(container.get instanceof Function);
+                assert(container.set instanceof Function);
+                assert(container.exists instanceof Function);
+                counter++;
+            });
+
+            config.compiler.onCompilePost(function(container) {
+                assert(container.get instanceof Function);
+                assert(container.set instanceof Function);
+                assert(container.exists instanceof Function);
+                counter++;
+            });
+
+            config.compiler.emitCompile();
+            assert.strictEqual(2, counter);
+        });
     });
 });

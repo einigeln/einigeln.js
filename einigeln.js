@@ -23,6 +23,7 @@ module.exports = function Einigeln(controlCallback) {
         // Intended NOOP.
     };
 
+    var container = this;
     var compiler = null;
     var events = new EventEmitter();
     var config = {
@@ -59,9 +60,9 @@ module.exports = function Einigeln(controlCallback) {
              * Then trigger the event "compile.post".
              */
             emitCompile: function () {
-                events.emit('compiler.pre', this);
+                events.emit('compiler.pre', container);
                 config.instantiate = true;
-                events.emit('compiler.post', this);
+                events.emit('compiler.post', container);
             }
         }
     };
