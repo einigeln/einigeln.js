@@ -117,7 +117,7 @@ module.exports = function Einigeln(controlCallback) {
      */
     var checkServiceisDefined = function (key) {
         if (!(key in definitions)) {
-            throw new Error('Service is not defined: ' + key);
+            throw new Error("Service is not defined: '" + key + "'");
         }
     };
 
@@ -166,7 +166,7 @@ module.exports = function Einigeln(controlCallback) {
      *
      * @param key
      * @param definition
-     * @returns {exports}
+     * @returns this
      */
     this.set = function (key, definition) {
         // Ensure the given key is a string
@@ -184,6 +184,60 @@ module.exports = function Einigeln(controlCallback) {
 
         definitions[key] = definition;
         return this;
+    };
+
+    /**
+     * Helper for generating service definition with magic injections.
+     *
+     * If the last parameter `injects` is given, the values from that array are used
+     * as services for arguments for given definition.
+     *
+     * If the last parameter is not given, the needed injections will be tried to calculated from the function signature.
+     *
+     * @param key
+     * @param definition
+     * @param injects
+     * @returns this
+     */
+    this.inject = function (key, definition, injects) {
+        var container = this;
+
+        if (undefined !== injects && !injects.map) {
+            throw new Error('injects parameter needs to have function `map()`.');
+        }
+
+        if (!isFunction(definition)) {
+            throw new Error('Only functions can have injections.');
+        }
+
+        if (undefined === injects) {
+            // Calculate injections from function signature.
+            var fnString = definition.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s))/mg, '');
+            // Only use magical injections if function takes any arguments.
+            if (0 !== fnString.indexOf('function()')) {
+                injects = fnString.match(/^function\s*[^\(]*\(\s*([^\)]*)\)/m)[1].split(/,/);
+            }
+        }
+        injects = injects || [];
+
+        return this.set(key, function () {
+            // Check if all dependencies exist before fetching from container.
+            injects.forEach(function (name) {
+                if (!container.exists(name)) {
+                    throw new Error("Needed dependency '" + name + "' does not exist in container.");
+                }
+            });
+
+            // Fetch services from container.
+            var injectedServices = injects.map(function (name) {
+                return container.get(name);
+            });
+
+            if (isFunction(definition)) {
+                return definition.apply(definition, injectedServices);
+            }
+            return definition;
+        });
     };
 
     /**

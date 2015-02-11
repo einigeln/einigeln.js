@@ -179,6 +179,73 @@ describe('Einigeln', function () {
         });
     });
 
+    describe('Inject', function () {
+        it('should define services without injections', function () {
+            var di = new Einigeln();
+
+            di.inject('foo', function () {
+                assert.deepEqual({}, [].slice.call(arguments));
+                return 42;
+            });
+
+            assert.strictEqual(42, di.get('foo'));
+        });
+
+        it('should define services with given injections', function () {
+            var di = new Einigeln();
+
+            di.set('hello', 'world');
+
+            di.set('foo', function () {
+                return 42;
+            });
+
+            di.inject('bar', function (foo, hello) {
+                assert.deepEqual([42, 'world'], [].slice.call(arguments));
+                return '' + hello + ': ' + foo;
+            }, ['foo', 'hello']);
+
+            assert.strictEqual(42, di.get('foo'));
+            assert.strictEqual('world: 42', di.get('bar'));
+        });
+
+        it('should define services with magic injections', function () {
+            var di = new Einigeln();
+
+            di.set('hello', 'world');
+            di.set('foo', function () {
+                return 42;
+            });
+
+            di.inject('baz', function (foo, hello) {
+                assert.deepEqual([42, 'world'], [].slice.call(arguments));
+                return '' + hello + ': ' + foo;
+            });
+
+            assert.strictEqual(42, di.get('foo'));
+            assert.strictEqual('world: 42', di.get('baz'));
+        });
+
+        it('should define services with magic injections from variables', function () {
+            var di = new Einigeln();
+
+            di.set('hello', 'world');
+            di.set('foo', function () {
+                return 42;
+            });
+
+            var service = function (foo, hello) {
+                assert.deepEqual([42, 'world'], [].slice.call(arguments));
+                return '' + hello + ': ' + foo;
+            };
+
+            di.inject('baz', service);
+
+            assert.strictEqual(42, di.get('foo'));
+            assert.strictEqual('world: 42', di.get('baz'));
+        });
+    });
+
     describe('Tags', function () {
         it('should start with empty tags', function () {
             var di = new Einigeln();
@@ -204,7 +271,7 @@ describe('Einigeln', function () {
         });
     });
 
-    describe('Compiler', function () {
+    describe('Unset', function () {
         it('should unset a parameter', function () {
             var di = new Einigeln();
 
