@@ -2,6 +2,7 @@
   "name": "einigeln",
   "version": "0.0.0",
   "description": "Dependency Injection container using a interface like Pimple3.",
+  "keywords": ["di", "dependency injection", "ioc", "inversion of control", "container", "injection", "injector", "registry"],
   "main": "einigeln.js",
   "scripts": {
     "test": "mocha"
@@ -10,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/h4cc/einigeln.js"
   },
-  "author": "Julius Beckmann <npm@juliusbeckmann.de> (https://github.com/h4cc)",
+  "author": "Julius Beckmann <github@h4cc.de> (https://github.com/h4cc)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/h4cc/einigeln.js/issues"

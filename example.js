@@ -1,33 +1,10 @@
-# Einigeln.js [![Build Status](https://travis-ci.org/h4cc/einigeln.js.svg)](https://travis-ci.org/h4cc/einigeln.js)
-
-Einigeln is a library to do "Dependency Injection" or "Inversion of Control" initially for NodeJS, inspired by some other libraries like Pimple or Electrolyte.
-
-The difference from the other libraries, this one targets at:
-
-* Throwing errors if anything invalid happens.
-* Lazy instantiation of services.
-* Access to raw service definitions.
-* Tagging services with configurations.
-* Frozen Services if they have been created at least once.
-* Lock Container by configuration, so definitions will not change.
-* Forbid instantiation by configuration, so container will behave like a ContainerBuilder.
-* Compiler that enables events before and after instantiation is enabled.
-
-Other features have not been targeted, like:
-
-* Not (yet) including `require` actions. These need to be done by users.
-* Not (yet) offering a `module.export[@require]` Syntax or such, but could be added if needed.
-
-In the end Einigeln is a container that can be given to 3-rd-party code to define their own services inside.
-
-------------------------------------
-
-## API
-
-There are just a few calls, ordered by the most common ones:
-
-```javascript
-// This code can also be found at: `example.js`
+/**
+ * This is a script for demonstrating Einigeln Container usage.
+ *
+ * @author Julius Beckmann
+ *
+ * @type {exports}
+ */
 
 var Einigeln = require('./einigeln');
 
@@ -101,13 +78,10 @@ container.set('leet', function(container) {
 });
 var leet = container.raw('leet');
 console.log(leet());
-```
 
-## Compiler
 
-Using the compiler is a more advances feature, even if it works quite simple.
+//--- Extended usage of container and compiler.
 
-```javascript
 var containerConfig = null;
 container = new Einigeln(function(config) {
     containerConfig = config;
@@ -150,15 +124,3 @@ containerConfig.locked = true;
 
 // This will fail then:
 container.set('foo', 'bar');
-```
-
-## TODO
-
-* Create some more tests.
-* If somebody wants to use it in a browser, change module loading that way.
-
-## About the name
-
-Imagine a hedgehog that curls himself to a ball.
-There is a german word for that called "einigeln", with no english representation AFAIK.
-The analogy to this library is the possibility to protected the container from unwanted changes from outside.

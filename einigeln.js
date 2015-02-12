@@ -1,5 +1,8 @@
 /**
- * TODO: Write docs.
+ * Einigeln - Dependency Injection Container for NodeJS.
+ *
+ * @author Julius Beckmann
+ * @license MIT
  */
 
 var EventEmitter = require('events').EventEmitter;

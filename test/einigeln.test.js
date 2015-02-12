@@ -1,3 +1,10 @@
+/**
+ * Einigeln - Dependency Injection Container for NodeJS.
+ *
+ * @author Julius Beckmann
+ * @license MIT
+ */
+
 var assert = require('assert');
 var Einigeln = require('../einigeln');
 
@@ -242,27 +249,27 @@ describe('Einigeln', function () {
 
         /*
         it('should define services with magic injections', function () {
-            var di = new Einigeln();
+            var container = new Einigeln();
 
-            di.set('hello', 'world');
-            di.set('foo', function () {
+            container.set('hello', 'world');
+            container.set('foo', function () {
                 return 42;
             });
 
-            di.inject('baz', function (foo, hello) {
+            container.inject('baz', function (foo, hello) {
                 assert.deepEqual([42, 'world'], [].slice.call(arguments));
                 return '' + hello + ': ' + foo;
             });
 
-            assert.strictEqual(42, di.get('foo'));
-            assert.strictEqual('world: 42', di.get('baz'));
+            assert.strictEqual(42, container.get('foo'));
+            assert.strictEqual('world: 42', container.get('baz'));
         });
 
         it('should define services with magic injections from variables', function () {
-            var di = new Einigeln();
+            var container = new Einigeln();
 
-            di.set('hello', 'world');
-            di.set('foo', function () {
+            container.set('hello', 'world');
+            container.set('foo', function () {
                 return 42;
             });
 
@@ -271,10 +278,10 @@ describe('Einigeln', function () {
                 return '' + hello + ': ' + foo;
             };
 
-            di.inject('baz', service);
+            container.inject('baz', service);
 
-            assert.strictEqual(42, di.get('foo'));
-            assert.strictEqual('world: 42', di.get('baz'));
+            assert.strictEqual(42, container.get('foo'));
+            assert.strictEqual('world: 42', container.get('baz'));
         });
          */
     });
