@@ -1,4 +1,4 @@
-# Einigeln.js [![Build Status](https://travis-ci.org/h4cc/einigeln.js.svg)](https://travis-ci.org/h4cc/einigeln.js)
+# Einigeln.js [![Build Status](https://travis-ci.org/einigeln/einigeln.js.svg)](https://travis-ci.org/h4cc/einigeln.js)
 
 Einigeln is a library to do "Dependency Injection" or "Inversion of Control" initially for NodeJS, inspired by some other libraries like Pimple or Electrolyte.
 
