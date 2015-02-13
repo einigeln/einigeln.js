@@ -9,12 +9,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/h4cc/einigeln.js"
+    "url": "https://github.com/einigeln/einigeln.js"
   },
-  "author": "Julius Beckmann <github@h4cc.de> (https://github.com/h4cc)",
+  "author": "Julius Beckmann (https://github.com/h4cc)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/h4cc/einigeln.js/issues"
+    "url": "https://github.com/einigeln/einigeln.js/issues"
   },
   "devDependencies": {
     "mocha": "~2.1.0"
