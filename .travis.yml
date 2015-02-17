@@ -11,6 +11,7 @@ node_js:
 
 deploy:
   provider: npm
+  email: 'einigeln@h4cc.de'
   api_key:
     secure: EnycfNiMa15/4/4Qo9c/vSH85DZRGVgALnfA1iyCRXlLD/uQsZDTaZ2kLx44n8spB//DE6d5mVeoK01LZi+mCfKwG3hskyW63BBhl3BeYQTc6eR3Mq9BWMsehLrT68+o4E2F3UStKyw2uAO8lAT01pH8ybOtcWJvbMWYYsez6ek=
   on:
