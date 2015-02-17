@@ -1,7 +1,7 @@
 {
   "name": "einigeln",
-  "version": "0.0.0",
-  "description": "Dependency Injection container using a interface like Pimple3.",
+  "version": "0.1.0",
+  "description": "Dependency Injection container using a interface like Pimple3 with compiler, configuration and events.",
   "keywords": ["di", "dependency injection", "ioc", "inversion of control", "container", "injection", "injector", "registry"],
   "main": "einigeln.js",
   "scripts": {
