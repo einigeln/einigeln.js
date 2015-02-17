@@ -1,9 +1,17 @@
 language: node_js
+
 node_js:
-  - "0.12"
-  - "0.11"
-  - "0.10"
-  - "0.8"
-  - "0.6"
-  - "iojs"
-  - "iojs-v1.0.2"
+  - '0.12'
+  - '0.11'
+  - '0.10'
+  - '0.8'
+  - '0.6'
+  - iojs
+  - iojs-v1.0.2
+
+deploy:
+  provider: npm
+  api_key:
+    secure: EnycfNiMa15/4/4Qo9c/vSH85DZRGVgALnfA1iyCRXlLD/uQsZDTaZ2kLx44n8spB//DE6d5mVeoK01LZi+mCfKwG3hskyW63BBhl3BeYQTc6eR3Mq9BWMsehLrT68+o4E2F3UStKyw2uAO8lAT01pH8ybOtcWJvbMWYYsez6ek=
+  on:
+    tags: true
