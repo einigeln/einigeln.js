@@ -28,6 +28,13 @@ container.inject('bye', function(name) {
 }, ['name']);
 console.log(container.get('bye'));
 
+// Defining a service with MAGIC inject
+container.inject('bye2', function(name) {
+    // `name` has been MAGICALLY injected.
+    return 'bye '+name
+});
+console.log(container.get('bye2'));
+
 // Check if a definition exists
 container.exists('name'); // true
 

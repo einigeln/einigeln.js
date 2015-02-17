@@ -206,25 +206,23 @@ module.exports = function Einigeln(controlCallback) {
     this.inject = function (key, definition, injects) {
         var container = this;
 
-        if (undefined !== injects && !injects.map) {
-            throw new Error('injects parameter needs to have function `map()`.');
+        if (undefined !== injects && !(injects instanceof Array)) {
+            throw new Error('injects parameter needs to be a array.');
         }
 
         if (!isFunction(definition)) {
             throw new Error('Only functions can have injections.');
         }
 
-        /*
-        // TODO: This does not work with named Function/Classes. FIXME
         if (undefined === injects) {
             // Calculate injections from function signature.
             var fnString = definition.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/)|(\s))/mg, '');
             // Only use magical injections if function takes any arguments.
-            if (0 !== fnString.indexOf('function()')) {
-                injects = fnString.match(/^function\s*[^\(]*\(\s*([^\)]*)\)/m)[1].split(/,/);
+            var parameterString = fnString.match(/^function\s*[^\(]*\(\s*([^\)]*)\)/m);
+            if('' !== parameterString[1]) {
+                injects = parameterString[1].split(/,/);
             }
         }
-        */
         injects = injects || [];
 
         return this.set(key, function () {
@@ -363,6 +361,14 @@ module.exports = function Einigeln(controlCallback) {
      * @param config object
      */
     this.tag = function (key, tag, config) {
+
+        if(typeof key !== 'string') {
+            throw new Error('Key is not a string. Only strings are supported as keys.');
+        }
+        if(typeof tag !== 'string') {
+            throw new Error('Tag is not a string. Only strings are supported as tags.');
+        }
+
         config = config || {};
         if (!(tag in tagged)) {
             tagged[tag] = [];

@@ -1,6 +1,6 @@
 # Einigeln.js [![Build Status](https://travis-ci.org/einigeln/einigeln.js.svg)](https://travis-ci.org/h4cc/einigeln.js)
 
-Einigeln is a library to do "Dependency Injection" or "Inversion of Control" initially for NodeJS, inspired by some other libraries like Pimple or Electrolyte.
+Einigeln is a library to do "Dependency Injection" or "Inversion of Control" initially for NodeJS, inspired by some other libraries like [Pimple](http://pimple.sensiolabs.org/) or [Electrolyte](https://github.com/jaredhanson/electrolyte).
 
 The difference from the other libraries, this one targets at:
 
@@ -50,6 +50,13 @@ container.inject('bye', function(name) {
     return 'bye '+name
 }, ['name']);
 console.log(container.get('bye'));
+
+// Defining a service with MAGIC inject
+container.inject('bye2', function(name) {
+    // `name` has been MAGICALLY injected.
+    return 'bye '+name
+});
+console.log(container.get('bye2'));
 
 // Check if a definition exists
 container.exists('name'); // true
@@ -154,7 +161,6 @@ container.set('foo', 'bar');
 
 ## TODO
 
-* Create some more tests.
 * If somebody wants to use it in a browser, change module loading that way.
 
 ## About the name

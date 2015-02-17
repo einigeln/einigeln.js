@@ -8,8 +8,6 @@
 var assert = require('assert');
 var Einigeln = require('../einigeln');
 
-// TODO: Implement some more tests like these: https://github.com/silexphp/Pimple/blob/master/src/Pimple/Tests/PimpleTest.php
-
 describe('Einigeln', function () {
 
     describe('Parameter', function () {
@@ -67,6 +65,24 @@ describe('Einigeln', function () {
             assert.strictEqual(false, di.exists('nope'));
             assert.strictEqual(false, di.exists(''));
         });
+
+        it('should throw error on missing', function () {
+            var di = new Einigeln();
+
+            assert.throws(
+                function () {
+                    di.get('bar');
+                },
+                /not defined/
+            );
+
+            assert.throws(
+                function () {
+                    di.raw('bar');
+                },
+                /not defined/
+            );
+        });
     });
 
     describe('Services', function () {
@@ -111,6 +127,18 @@ describe('Einigeln', function () {
 
             assert.notStrictEqual(di.get('foo'), di.get('foo'));
         });
+
+        it('should pass container as parameter tu services', function () {
+            var di = new Einigeln();
+
+            di.set('bar', 42);
+
+            di.set('foo', function (container) {
+                return container.get('bar') * 2;
+            });
+
+            assert.strictEqual(84, di.get('foo'));
+        });
     });
 
     describe('Raw definitions', function () {
@@ -127,12 +155,14 @@ describe('Einigeln', function () {
             assert.strictEqual(raw, di.raw('foo'));
         });
 
-        it('should return parameter', function () {
+        it('should return parameter as given', function () {
             var di = new Einigeln();
 
             di.set('foo', 42);
+            di.set('bar', null);
 
             assert.strictEqual(42, di.raw('foo'));
+            assert.strictEqual(null, di.raw('bar'));
         });
     });
 
@@ -213,8 +243,8 @@ describe('Einigeln', function () {
         it('should define classes as services with given injections', function () {
             var di = new Einigeln();
 
-            di.set('hello', 'world');
-            di.set('bar', 42);
+            di.set('hello2', 'world');
+            di.set('bar2', 42);
 
             var foo = function Foo(hello, answer) {
                 assert.deepEqual(["world", 42], [].slice.call(arguments));
@@ -223,7 +253,7 @@ describe('Einigeln', function () {
                 };
             };
 
-            di.inject('foo', foo, ['hello', 'bar']);
+            di.inject('foo', foo, ['hello2', 'bar2']);
 
             assert(di.get('foo') instanceof foo);
             assert.strictEqual('world: 42', di.get('foo').bar());
@@ -247,7 +277,6 @@ describe('Einigeln', function () {
             assert.strictEqual('world: 42', di.get('bar'));
         });
 
-        /*
         it('should define services with magic injections', function () {
             var container = new Einigeln();
 
@@ -283,7 +312,6 @@ describe('Einigeln', function () {
             assert.strictEqual(42, container.get('foo'));
             assert.strictEqual('world: 42', container.get('baz'));
         });
-         */
     });
 
     describe('Tags', function () {
@@ -525,6 +553,143 @@ describe('Einigeln', function () {
 
             config.compiler.emitCompile();
             assert.strictEqual(2, counter);
+        });
+    });
+
+    describe('Type errors', function () {
+        it('should only accept functions as container argument', function () {
+            // Works
+            new Einigeln(function (internalConfig) {
+            });
+
+            ['', null, [], {},].forEach(function(type) {
+                assert.throws(
+                    function () {
+                        new Einigeln(type);
+                    },
+                    /needs to be a function/
+                );
+            });
+        });
+
+        it('should ensure correct types for set', function () {
+            var di = new Einigeln();
+            var types = [null, [], {}, function() {}];
+
+            types.forEach(function(type) {
+                di.set('a', type);
+                assert.throws(
+                    function () {
+                        di.set(type, 'a');
+                    },
+                    /not a string/
+                );
+            });
+        });
+
+        it('should ensure correct types for inject', function () {
+            var di = new Einigeln();
+
+            var typesInject = ['', null, {}, function() {}];
+            typesInject.forEach(function(type) {
+                assert.throws(
+                    function () {
+                        di.inject('a', function() {}, type);
+                    },
+                    /injects parameter needs to be a array/
+                );
+            });
+
+            var typesFunction = ['', null, {}, []];
+            typesFunction.forEach(function(type) {
+                assert.throws(
+                    function () {
+                        di.inject('a', type);
+                    },
+                    /Only functions/
+                );
+            });
+        });
+
+        it('should throw a error if service is not defined', function () {
+            var di = new Einigeln();
+
+            assert.throws(
+                function () {
+                    di.get('a');
+                },
+                /Service is not defined/
+            );
+
+            assert.throws(
+                function () {
+                    di.raw('a');
+                },
+                /Service is not defined/
+            );
+        });
+
+        it('should ensure correct types for tags', function () {
+            var di = new Einigeln();
+
+            var types = [null, [], {}, function() {}];
+            types.forEach(function(type) {
+                assert.throws(
+                    function () {
+                        di.tag(type, function() {});
+                    },
+                    /Key is not a string/
+                );
+                assert.throws(
+                    function () {
+                        di.tag('a', type);
+                    },
+                    /Tag is not a string/
+                );
+            });
+        });
+
+        it('should ensure correct types for factory', function () {
+            var di = new Einigeln();
+
+            var types = [null, [], {}, ''];
+            types.forEach(function(type) {
+                assert.throws(
+                    function () {
+                        di.factory(type);
+                    },
+                    /is not a function/
+                );
+            });
+        });
+
+        it('should ensure correct types for protected', function () {
+            var di = new Einigeln();
+
+            var types = [null, [], {}, ''];
+            types.forEach(function(type) {
+                assert.throws(
+                    function () {
+                        di.protect(type);
+                    },
+                    /is not a function/
+                );
+            });
+        });
+
+        it('should ensure correct types for extend', function () {
+            var di = new Einigeln();
+            di.set('a', null);
+
+            var types = [null, [], {}, ''];
+            types.forEach(function(type) {
+                assert.throws(
+                    function () {
+                        di.extend('a', type);
+                    },
+                    /is not a function/
+                );
+            });
         });
     });
 });
